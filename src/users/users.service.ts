@@ -16,7 +16,7 @@ export class UsersService {
     const user = new this.userModel(createUserDto);
     this.userClient.emit('client inserted', user);
     const result = await user.save();
-    return {email: result.email, id: result._id};
+    return { email: result.email, id: result._id };
   }
 
   async findUserInfo(id: string) {

@@ -3,7 +3,6 @@ import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AvatarsModule } from './avatars/avatars.module';
 
 @Module({
