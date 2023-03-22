@@ -12,13 +12,15 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { EmailService } from 'src/email/email.service';
-import { convertImageToBase64 } from '../utils/toDataUrl';
+import { AvatarsService } from 'src/avatars/avatars.service';
+import imgToBase64 from 'src/utils/toBase64';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
+    private readonly avatarService: AvatarsService,
   ) {}
 
   @Post()
@@ -32,9 +34,10 @@ export class UsersController {
         message: 'e-mail already in use',
       });
     }
-    const generatedEmail = await this.usersService.createUser(createUserDto);
-    await this.emailService.sendEmail(generatedEmail);
-    return;
+    const res = await this.usersService.createUser(createUserDto);
+    const email = res.email;
+    await this.emailService.sendEmail(email);
+    return res.id;
   }
 
   @Get(':id')
@@ -51,22 +54,31 @@ export class UsersController {
 
   @Get(':id/avatar')
   async findAvatar(@Param('id') id: string) {
-    const userAvatar = await this.usersService.findUserInfo(id);
-    console.log(userAvatar);
-    const base64avatar = convertImageToBase64(userAvatar, function (dataUrl) {
-      console.log('RESULT', dataUrl);
-    });
-    if (!userAvatar) {
-      throw new NotFoundException({
-        errorCode: 404,
-        message: 'user not found',
+    const fileExists = await this.avatarService.findOne(id);
+    if (fileExists.length === 0) {
+      const userAvatar = await this.usersService.findUserInfo(id);
+
+      if (!userAvatar) {
+        throw new NotFoundException({
+          errorCode: 404,
+          message: 'user not found',
+        });
+      }
+      const base64avatar = await imgToBase64(userAvatar.avatar);
+      const objectId = userAvatar._id;
+
+      await this.avatarService.create({
+        userId: objectId.toString('hex'),
+        avatar: base64avatar,
       });
+      return base64avatar;
+    } else {
+      return fileExists[0].avatar;
     }
-    return userAvatar;
   }
 
   @Delete(':id/avatar')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+    return this.avatarService.remove(id);
   }
 }

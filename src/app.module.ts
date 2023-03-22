@@ -20,19 +20,6 @@ import { AvatarsModule } from './avatars/avatars.module';
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URI),
     UsersModule,
-    ClientsModule.register([
-      {
-        name: 'PAYMENT_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'payever_rabbit',
-          queueOptions: {
-            durable: true,
-          },
-        },
-      },
-    ]),
     AvatarsModule,
   ],
   controllers: [],
